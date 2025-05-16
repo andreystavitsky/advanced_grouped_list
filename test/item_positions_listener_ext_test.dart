@@ -1,8 +1,7 @@
 // ignore_for_file: avoid_implementing_value_types, invalid_override_of_non_virtual_member
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:sticky_grouped_list/src/item_positions_listener_ext.dart';
+import 'package:sticky_grouped_list/sticky_grouped_list.dart';
 
 void main() {
   group('ItemPositionsListenerExt', () {

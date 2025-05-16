@@ -19,5 +19,11 @@ export 'src/sticky_grouped_list.dart'
         StickyGroupedListViewState;
 export 'src/sticky_grouped_list_order.dart' show StickyGroupedListOrder;
 
+export 'src/item_positions_listener_ext.dart';
+
 export 'package:scrollable_positioned_list/scrollable_positioned_list.dart'
-    show ItemPositionsListener, ScrollOffsetController, ScrollOffsetListener;
+    show
+        ItemPositionsListener,
+        ScrollOffsetController,
+        ScrollOffsetListener,
+        ItemPosition;
