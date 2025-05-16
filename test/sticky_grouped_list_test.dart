@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import 'package:sticky_grouped_list/sticky_grouped_list.dart';
 
@@ -233,5 +234,303 @@ void main() {
     });
     // We can't directly assert on developer.log output, but this test ensures no exceptions are thrown
     expect(logs, isEmpty);
+  });
+
+  testWidgets(
+      'works as a plain list when groupBy and groupSeparatorBuilder are omitted',
+      (WidgetTester tester) async {
+    final elements = [
+      {'name': 'A'},
+      {'name': 'B'},
+      {'name': 'C'},
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StickyGroupedListView(
+            elements: elements,
+            itemBuilder: (context, dynamic element) => Text(element['name']),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('A'), findsOneWidget);
+    expect(find.text('B'), findsOneWidget);
+    expect(find.text('C'), findsOneWidget);
+    // Should not find any group separator widgets
+    expect(
+        find
+            .byType(Text)
+            .evaluate()
+            .where((e) => (e.widget as Text).data == null),
+        isEmpty);
+  });
+
+  testWidgets('plain list mode throws for E = String (non-nullable)',
+      (WidgetTester tester) async {
+    final elements = [
+      {'name': 'A'},
+      {'name': 'B'},
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StickyGroupedListView<Map<String, String>, String>(
+            elements: elements,
+            itemBuilder: (context, element) => Text(element['name']!),
+          ),
+        ),
+      ),
+    );
+    final exception = tester.takeException();
+    expect(exception, isA<UnsupportedError>());
+  });
+
+  testWidgets('plain list mode throws for E = int (non-nullable)',
+      (WidgetTester tester) async {
+    final elements = [
+      {'name': 'A'},
+      {'name': 'B'},
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StickyGroupedListView<Map<String, String>, int>(
+            elements: elements,
+            itemBuilder: (context, element) => Text(element['name']!),
+          ),
+        ),
+      ),
+    );
+    final exception = tester.takeException();
+    expect(exception, isA<UnsupportedError>());
+  });
+
+  testWidgets('plain list mode throws for E = Object (non-nullable)',
+      (WidgetTester tester) async {
+    final elements = [
+      {'name': 'A'},
+      {'name': 'B'},
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StickyGroupedListView<Map<String, String>, Object>(
+            elements: elements,
+            itemBuilder: (context, element) => Text(element['name']!),
+          ),
+        ),
+      ),
+    );
+    final exception = tester.takeException();
+    expect(exception, isA<UnsupportedError>());
+  });
+
+  testWidgets('plain list mode works with E = String? (nullable)',
+      (WidgetTester tester) async {
+    final elements = [
+      {'name': 'A'},
+      {'name': 'B'},
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StickyGroupedListView<Map<String, String>, String?>(
+            elements: elements,
+            itemBuilder: (context, element) => Text(element['name']!),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('A'), findsOneWidget);
+    expect(find.text('B'), findsOneWidget);
+  });
+
+  testWidgets('plain list mode works with E = int? (nullable)',
+      (WidgetTester tester) async {
+    final elements = [
+      {'name': 'A'},
+      {'name': 'B'},
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StickyGroupedListView<Map<String, String>, int?>(
+            elements: elements,
+            itemBuilder: (context, element) => Text(element['name']!),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('A'), findsOneWidget);
+    expect(find.text('B'), findsOneWidget);
+  });
+
+  testWidgets('plain list mode works with E = Object? (nullable)',
+      (WidgetTester tester) async {
+    final elements = [
+      {'name': 'A'},
+      {'name': 'B'},
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StickyGroupedListView<Map<String, String>, Object?>(
+            elements: elements,
+            itemBuilder: (context, element) => Text(element['name']!),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('A'), findsOneWidget);
+    expect(find.text('B'), findsOneWidget);
+  });
+
+  testWidgets('plain list mode works with E = Null',
+      (WidgetTester tester) async {
+    final elements = [
+      {'name': 'A'},
+      {'name': 'B'},
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StickyGroupedListView<Map<String, String>, Null>(
+            elements: elements,
+            itemBuilder: (context, element) => Text(element['name']!),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('A'), findsOneWidget);
+    expect(find.text('B'), findsOneWidget);
+  });
+
+  testWidgets('plain list mode with empty list', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StickyGroupedListView<Map<String, String>, String>(
+            elements: const [],
+            itemBuilder: (context, element) => Text(element['name']!),
+          ),
+        ),
+      ),
+    );
+    expect(find.byType(Text), findsNothing);
+  });
+
+  testWidgets('plain list mode with single element',
+      (WidgetTester tester) async {
+    final elements = [
+      {'name': 'A'},
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StickyGroupedListView<Map<String, String>, String>(
+            elements: elements,
+            itemBuilder: (context, element) => Text(element['name']!),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('A'), findsOneWidget);
+  });
+
+  group('StickyGroupedListView.topVisibleElementIndex', () {
+    testWidgets('returns null when no items are visible', (tester) async {
+      // Build a widget with an empty list
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StickyGroupedListView<String, String>(
+            elements: [],
+            itemBuilder: (context, element) => Text(element),
+            groupBy: (element) => element[0],
+            groupSeparatorBuilder: (element) => Text('Group ${element[0]}'),
+          ),
+        ),
+      );
+
+      // Find the state
+      final StickyGroupedListViewState<String, String> state = tester.state(
+        find.byType(StickyGroupedListView<String, String>),
+      );
+
+      // No elements should be visible
+      expect(state.topVisibleElementIndex, isNull);
+    });
+
+    testWidgets('returns correct index for visible items', (tester) async {
+      // Build a widget with a list of items
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StickyGroupedListView<String, String>(
+            elements: ['A1', 'A2', 'B1', 'B2', 'C1'],
+            itemBuilder: (context, element) => SizedBox(
+              height: 100,
+              child: Text(element),
+            ),
+            groupBy: (element) => element[0],
+            groupSeparatorBuilder: (element) => SizedBox(
+              height: 50,
+              child: Text('Group ${element[0]}'),
+            ),
+          ),
+        ),
+      );
+
+      // Wait for all animations to complete
+      await tester.pumpAndSettle();
+
+      // Find the state
+      final StickyGroupedListViewState<String, String> state = tester.state(
+        find.byType(StickyGroupedListView<String, String>),
+      );
+
+      // First element (index 0) should be visible at the top
+      expect(state.topVisibleElementIndex, 0);
+
+      // Scroll down using the ScrollablePositionedList inside StickyGroupedListView
+      final scrollable = find.byType(ScrollablePositionedList).first;
+      await tester.drag(scrollable, const Offset(0, -150));
+      await tester.pumpAndSettle();
+
+      // After scrolling, a different element should be at the top
+      expect(state.topVisibleElementIndex, isNotNull);
+    });
+
+    testWidgets('handles reverse=true correctly', (tester) async {
+      // Build a widget with a reversed list
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StickyGroupedListView<String, String>(
+            elements: ['A1', 'A2', 'B1', 'B2', 'C1'],
+            itemBuilder: (context, element) => SizedBox(
+              height: 100,
+              child: Text(element),
+            ),
+            groupBy: (element) => element[0],
+            groupSeparatorBuilder: (element) => SizedBox(
+              height: 50,
+              child: Text('Group ${element[0]}'),
+            ),
+            reverse: true,
+          ),
+        ),
+      );
+
+      // Wait for all animations to complete
+      await tester.pumpAndSettle();
+
+      // Find the state
+      final StickyGroupedListViewState<String, String> state = tester.state(
+        find.byType(StickyGroupedListView<String, String>),
+      );
+
+      // In reverse mode, the last element should be visible at the top
+      // The exact index depends on the widget's height, but we can verify it's not null
+      expect(state.topVisibleElementIndex, isNotNull);
+    });
   });
 }

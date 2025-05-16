@@ -18,7 +18,8 @@ class StickyGroupedListView<T, E> extends StatefulWidget {
   ///
   /// Function is called for each element in the list, when equal for two
   /// elements, those two belong to the same group.
-  final E Function(T element) groupBy;
+  /// If null, all elements are considered in a single group.
+  final E Function(T element)? groupBy;
 
   /// Can be used to define a custom sorting for the groups.
   ///
@@ -34,7 +35,8 @@ class StickyGroupedListView<T, E> extends StatefulWidget {
 
   /// Called to build group separators for each group.
   /// element is always the first element of the group.
-  final Widget Function(T element) groupSeparatorBuilder;
+  /// If null, no group separator is shown.
+  final Widget Function(T element)? groupSeparatorBuilder;
 
   /// Called to build children for the list with
   /// 0 <= element < elements.length.
@@ -147,11 +149,13 @@ class StickyGroupedListView<T, E> extends StatefulWidget {
   final bool showStickyHeader;
 
   /// Creates a [StickyGroupedListView].
+  ///
+  /// If [groupBy] and [groupSeparatorBuilder] are not provided, the widget behaves as a plain ScrollablePositionedList.
   const StickyGroupedListView({
     super.key,
     required this.elements,
-    required this.groupBy,
-    required this.groupSeparatorBuilder,
+    this.groupBy,
+    this.groupSeparatorBuilder,
     this.groupComparator,
     this.itemBuilder,
     this.indexedItemBuilder,
@@ -197,7 +201,7 @@ class StickyGroupedListViewState<T, E>
   final StreamController<int> _streamController = StreamController<int>();
   late ItemPositionsListener _listener;
   late GroupedItemScrollController _controller;
-  final GlobalKey _groupHeaderKey = GlobalKey(); // Only create once
+  final GlobalKey _groupHeaderKey = GlobalKey();
   int _topElementIndex = 0;
   RenderBox? _headerBox;
   RenderBox? _listBox;
@@ -205,6 +209,20 @@ class StickyGroupedListViewState<T, E>
   List<T>? _lastElements;
   int? _lastOrderHash;
   List<T>? _lastSortedElements;
+
+  // Default groupBy: all elements in one group, safe for any E (throws for non-nullable types)
+  E _defaultGroupBy(T element) {
+    // If E is nullable, return null as E
+    if (null is E) return null as E;
+    // Otherwise, throw informative error for any non-nullable E
+    throw UnsupportedError(
+      'StickyGroupedListView: Cannot use plain list mode with non-nullable group type E = '
+      '$E. Please specify groupBy or use a nullable type for E (e.g., E = Object?, String?, int?).',
+    );
+  }
+
+  // Default groupSeparatorBuilder: no separator
+  Widget _defaultGroupSeparatorBuilder(T element) => const SizedBox.shrink();
 
   @override
   void initState() {
@@ -242,7 +260,10 @@ class StickyGroupedListViewState<T, E>
 
   @override
   Widget build(BuildContext context) {
-    sortedElements = _memoizedSortElements();
+    final groupBy = widget.groupBy ?? _defaultGroupBy;
+    final groupSeparatorBuilder =
+        widget.groupSeparatorBuilder ?? _defaultGroupSeparatorBuilder;
+    sortedElements = _memoizedSortElements(groupBy);
     var hiddenIndex = widget.reverse ? sortedElements.length * 2 - 1 : 0;
     _isSeparator = widget.reverse ? (int i) => i.isOdd : (int i) => i.isEven;
 
@@ -268,7 +289,6 @@ class StickyGroupedListViewState<T, E>
           addRepaintBoundaries: widget.addRepaintBoundaries,
           addSemanticIndexes: widget.addSemanticIndexes,
           shrinkWrap: widget.shrinkWrap,
-          // scrollController is NOT supported by ScrollablePositionedList
           itemBuilder: (context, index) {
             int actualIndex = index ~/ 2;
 
@@ -276,12 +296,10 @@ class StickyGroupedListViewState<T, E>
               if (widget.showStickyHeader == true) {
                 return Opacity(
                   opacity: 0,
-                  child:
-                      widget.groupSeparatorBuilder(sortedElements[actualIndex]),
+                  child: groupSeparatorBuilder(sortedElements[actualIndex]),
                 );
               } else {
-                return widget
-                    .groupSeparatorBuilder(sortedElements[actualIndex]);
+                return groupSeparatorBuilder(sortedElements[actualIndex]);
               }
             }
 
@@ -291,11 +309,10 @@ class StickyGroupedListViewState<T, E>
                 // Out of bounds, just return separator
                 return widget.separator;
               }
-              E curr = widget.groupBy(sortedElements[actualIndex]);
-              E prev = widget.groupBy(sortedElements[prevIndex]);
+              E curr = groupBy(sortedElements[actualIndex]);
+              E prev = groupBy(sortedElements[prevIndex]);
               if (prev != curr) {
-                return widget
-                    .groupSeparatorBuilder(sortedElements[actualIndex]);
+                return groupSeparatorBuilder(sortedElements[actualIndex]);
               }
               return widget.separator;
             }
@@ -306,7 +323,8 @@ class StickyGroupedListViewState<T, E>
             ? StreamBuilder<int>(
                 stream: _streamController.stream,
                 initialData: _topElementIndex,
-                builder: (_, snapshot) => _showFixedGroupHeader(snapshot.data!),
+                builder: (_, snapshot) => _showFixedGroupHeader(
+                    snapshot.data!, groupSeparatorBuilder),
               )
             : SizedBox.shrink(),
       ],
@@ -314,12 +332,99 @@ class StickyGroupedListViewState<T, E>
   }
 
   /// Returns the index of the topmost visible element (not separator).
+  ///
+  /// For vertical lists with [reverse] = false, this is the element closest to the top edge.
+  /// For vertical lists with [reverse] = true, this is the element closest to the bottom edge.
+  /// For horizontal lists, the interpretation depends on text direction and reverse setting.
+  ///
+  /// This method handles different group sizes correctly and accounts for separators in the list.
+  /// It may return null if no item is visible or the list hasn't been laid out yet.
   int? get topVisibleElementIndex {
     final positions = _listener.itemPositions.value;
     if (positions.isEmpty) return null;
-    final top = positions.where((pos) => pos.itemTrailingEdge > 0).reduce(
-        (min, pos) => pos.itemTrailingEdge < min.itemTrailingEdge ? pos : min);
-    return top.index ~/ 2;
+
+    // Filter for visible items - must have trailing edge visible and not be completely off-screen
+    final visible = positions
+        .where((pos) => pos.itemTrailingEdge > 0 && pos.itemLeadingEdge < 1);
+
+    if (visible.isEmpty) return null;
+
+    // Determine which function to use based on reverse setting
+    ItemPosition topItem;
+    if (widget.reverse) {
+      // For reversed lists, the "top" is the item with the largest trailing edge
+      topItem = visible.reduce((max, pos) =>
+          pos.itemTrailingEdge > max.itemTrailingEdge
+              ? pos
+              : (pos.itemTrailingEdge == max.itemTrailingEdge &&
+                      pos.index < max.index
+                  ? pos
+                  : max));
+    } else {
+      // For normal lists, the "top" is the item with the smallest trailing edge
+      topItem = visible.reduce((min, pos) =>
+          pos.itemTrailingEdge < min.itemTrailingEdge
+              ? pos
+              : (pos.itemTrailingEdge == min.itemTrailingEdge &&
+                      pos.index < min.index
+                  ? pos
+                  : min));
+    }
+
+    // Get the raw index from the topmost visible item
+    final rawIndex = topItem.index;
+
+    // Check if the raw index is a separator or an actual element
+    if (_isSeparator != null && _isSeparator!(rawIndex)) {
+      // If the topmost visible item is a separator, we need to determine which element it belongs to
+
+      // In normal (not reversed) mode:
+      // - Even indices are separators (0, 2, 4...)
+      // - Odd indices are elements (1, 3, 5...)
+      // In reversed mode:
+      // - Odd indices are separators (1, 3, 5...)
+      // - Even indices are elements (0, 2, 4...)
+
+      // Calculate the actual element index by looking at which element the separator belongs to
+      if (widget.reverse) {
+        // In reversed mode, a separator at index n belongs to the element at index n-1
+        // (except for the first separator which would be out of bounds)
+        final elementRawIndex = (rawIndex > 0) ? rawIndex - 1 : 0;
+
+        // Convert the raw element index to actual element index
+        final elementIndex = elementRawIndex ~/ 2;
+
+        // Make sure the calculated index is valid
+        if (elementIndex >= 0 && elementIndex < sortedElements.length) {
+          return elementIndex;
+        }
+      } else {
+        // In normal mode, a separator at index n belongs to the element at index n+1
+        // (if available, otherwise it's the last separator)
+        final elementRawIndex =
+            (rawIndex + 1 < positions.length * 2) ? rawIndex + 1 : rawIndex - 1;
+
+        // Convert the raw element index to actual element index
+        final elementIndex = elementRawIndex ~/ 2;
+
+        // Make sure the calculated index is valid
+        if (elementIndex >= 0 && elementIndex < sortedElements.length) {
+          return elementIndex;
+        }
+      }
+
+      return null;
+    } else {
+      // It's an actual element, convert to element index
+      final elementIndex = rawIndex ~/ 2;
+
+      // Ensure the element index is within bounds
+      if (elementIndex >= 0 && elementIndex < sortedElements.length) {
+        return elementIndex;
+      }
+
+      return null;
+    }
   }
 
   Widget _buildItem(context, int actualIndex) {
@@ -342,14 +447,15 @@ class StickyGroupedListViewState<T, E>
     double height = _listBox?.size.height ?? 0;
     headerDimension = height > 0 ? headerHeight / height : 0;
 
+    final groupBy = widget.groupBy ?? _defaultGroupBy;
+    final group = _listener.itemPositions.value;
+
     ItemPosition reducePositions(ItemPosition pos, ItemPosition current) {
       if (widget.reverse) {
         return current.itemTrailingEdge > pos.itemTrailingEdge ? current : pos;
       }
       return current.itemTrailingEdge < pos.itemTrailingEdge ? current : pos;
     }
-
-    final group = _listener.itemPositions.value;
 
     if (group.isNotEmpty) {
       ItemPosition currentItem = group.reduce(reducePositions);
@@ -360,8 +466,8 @@ class StickyGroupedListViewState<T, E>
               name: 'StickyGroupedListView');
           return;
         }
-        E curr = widget.groupBy(sortedElements[index]);
-        E prev = widget.groupBy(sortedElements[_topElementIndex]);
+        E curr = groupBy(sortedElements[index]);
+        E prev = groupBy(sortedElements[_topElementIndex]);
         if (prev != curr) {
           _topElementIndex = index;
           _streamController.add(_topElementIndex);
@@ -370,7 +476,7 @@ class StickyGroupedListViewState<T, E>
     }
   }
 
-  List<T> _memoizedSortElements() {
+  List<T> _memoizedSortElements(E Function(T) groupBy) {
     // Memoize based on elements and order hash
     final elements = widget.elements;
     final orderHash = Object.hashAll(elements) ^ widget.order.hashCode;
@@ -379,26 +485,25 @@ class StickyGroupedListViewState<T, E>
         _lastSortedElements != null) {
       return _lastSortedElements!;
     }
-    final sorted = _sortElements();
+    final sorted = _sortElements(groupBy);
     _lastElements = elements;
     _lastOrderHash = orderHash;
     _lastSortedElements = sorted;
     return sorted;
   }
 
-  List<T> _sortElements() {
-    // Always work on a copy to avoid mutating the original list
+  List<T> _sortElements([E Function(T)? groupByParam]) {
+    final groupBy = groupByParam ?? widget.groupBy ?? _defaultGroupBy;
     List<T> elements = List<T>.from(widget.elements);
     if (elements.isNotEmpty) {
       elements.sort((e1, e2) {
         int? compareResult;
         // compare groups
         if (widget.groupComparator != null) {
+          compareResult = widget.groupComparator!(groupBy(e1), groupBy(e2));
+        } else if (groupBy(e1) is Comparable) {
           compareResult =
-              widget.groupComparator!(widget.groupBy(e1), widget.groupBy(e2));
-        } else if (widget.groupBy(e1) is Comparable) {
-          compareResult = (widget.groupBy(e1) as Comparable)
-              .compareTo(widget.groupBy(e2) as Comparable);
+              (groupBy(e1) as Comparable).compareTo(groupBy(e2) as Comparable);
         }
         // compare elements inside group
         if (compareResult == null || compareResult == 0) {
@@ -408,7 +513,7 @@ class StickyGroupedListViewState<T, E>
             compareResult = e1.compareTo(e2);
           }
         }
-        return compareResult!;
+        return compareResult ?? 0;
       });
     }
     if (widget.order == StickyGroupedListOrder.DESC) {
@@ -417,14 +522,15 @@ class StickyGroupedListViewState<T, E>
     return elements;
   }
 
-  Widget _showFixedGroupHeader(int index) {
+  Widget _showFixedGroupHeader(
+      int index, Widget Function(T) groupSeparatorBuilder) {
     if (widget.elements.isNotEmpty && index < sortedElements.length) {
       return Container(
         key: _groupHeaderKey,
         color:
             widget.floatingHeader ? null : widget.stickyHeaderBackgroundColor,
         width: widget.floatingHeader ? null : MediaQuery.of(context).size.width,
-        child: widget.groupSeparatorBuilder(sortedElements[index]),
+        child: groupSeparatorBuilder(sortedElements[index]),
       );
     }
     return Container();
