@@ -1,7 +1,7 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import 'sticky_grouped_list_order.dart';
@@ -72,6 +72,12 @@ class StickyGroupedListView<T, E> extends StatefulWidget {
 
   /// Notifier that reports the items laid out in the list after each frame.
   final ItemPositionsListener? itemPositionsListener;
+
+  /// Controller for tracking and controlling scroll offset (from scrollable_positioned_list).
+  final ScrollOffsetController? scrollOffsetController;
+
+  /// Listener for scroll offset changes (from scrollable_positioned_list).
+  final ScrollOffsetListener? scrollOffsetListener;
 
   /// The axis along which the scroll view scrolls.
   ///
@@ -158,6 +164,8 @@ class StickyGroupedListView<T, E> extends StatefulWidget {
     this.scrollDirection = Axis.vertical,
     this.itemScrollController,
     this.itemPositionsListener,
+    this.scrollOffsetController,
+    this.scrollOffsetListener,
     this.physics,
     this.padding,
     this.reverse = false,
@@ -176,7 +184,6 @@ class StickyGroupedListView<T, E> extends StatefulWidget {
   State<StatefulWidget> createState() => StickyGroupedListViewState<T, E>();
 }
 
-@internal
 class StickyGroupedListViewState<T, E>
     extends State<StickyGroupedListView<T, E>> {
   /// Used within [GroupedItemScrollController].
@@ -190,12 +197,14 @@ class StickyGroupedListViewState<T, E>
   final StreamController<int> _streamController = StreamController<int>();
   late ItemPositionsListener _listener;
   late GroupedItemScrollController _controller;
-  GlobalKey? _groupHeaderKey;
-  final GlobalKey _key = GlobalKey();
+  final GlobalKey _groupHeaderKey = GlobalKey(); // Only create once
   int _topElementIndex = 0;
   RenderBox? _headerBox;
   RenderBox? _listBox;
   bool Function(int)? _isSeparator;
+  List<T>? _lastElements;
+  int? _lastOrderHash;
+  List<T>? _lastSortedElements;
 
   @override
   void initState() {
@@ -233,20 +242,21 @@ class StickyGroupedListViewState<T, E>
 
   @override
   Widget build(BuildContext context) {
-    sortedElements = _sortElements();
+    sortedElements = _memoizedSortElements();
     var hiddenIndex = widget.reverse ? sortedElements.length * 2 - 1 : 0;
     _isSeparator = widget.reverse ? (int i) => i.isOdd : (int i) => i.isEven;
 
     return Stack(
-      key: _key,
+      key: widget.key,
       alignment: Alignment.topCenter,
       children: <Widget>[
         ScrollablePositionedList.builder(
-          key: widget.key,
           scrollDirection: widget.scrollDirection,
           itemScrollController: _controller,
-          physics: widget.physics,
           itemPositionsListener: _listener,
+          scrollOffsetController: widget.scrollOffsetController,
+          scrollOffsetListener: widget.scrollOffsetListener,
+          physics: widget.physics,
           initialAlignment: widget.initialAlignment,
           initialScrollIndex: widget.initialScrollIndex * 2,
           minCacheExtent: widget.minCacheExtent,
@@ -258,6 +268,7 @@ class StickyGroupedListViewState<T, E>
           addRepaintBoundaries: widget.addRepaintBoundaries,
           addSemanticIndexes: widget.addSemanticIndexes,
           shrinkWrap: widget.shrinkWrap,
+          // scrollController is NOT supported by ScrollablePositionedList
           itemBuilder: (context, index) {
             int actualIndex = index ~/ 2;
 
@@ -275,9 +286,13 @@ class StickyGroupedListViewState<T, E>
             }
 
             if (_isSeparator!(index)) {
+              int prevIndex = actualIndex + (widget.reverse ? 1 : -1);
+              if (prevIndex < 0 || prevIndex >= sortedElements.length) {
+                // Out of bounds, just return separator
+                return widget.separator;
+              }
               E curr = widget.groupBy(sortedElements[actualIndex]);
-              E prev = widget.groupBy(
-                  sortedElements[actualIndex + (widget.reverse ? 1 : -1)]);
+              E prev = widget.groupBy(sortedElements[prevIndex]);
               if (prev != curr) {
                 return widget
                     .groupSeparatorBuilder(sortedElements[actualIndex]);
@@ -298,7 +313,21 @@ class StickyGroupedListViewState<T, E>
     );
   }
 
+  /// Returns the index of the topmost visible element (not separator).
+  int? get topVisibleElementIndex {
+    final positions = _listener.itemPositions.value;
+    if (positions.isEmpty) return null;
+    final top = positions.where((pos) => pos.itemTrailingEdge > 0).reduce(
+        (min, pos) => pos.itemTrailingEdge < min.itemTrailingEdge ? pos : min);
+    return top.index ~/ 2;
+  }
+
   Widget _buildItem(context, int actualIndex) {
+    if (actualIndex < 0 || actualIndex >= sortedElements.length) {
+      developer.log('actualIndex $actualIndex out of bounds for sortedElements',
+          name: 'StickyGroupedListView');
+      return const SizedBox.shrink();
+    }
     return widget.indexedItemBuilder == null
         ? widget.itemBuilder!(context, sortedElements[actualIndex])
         : widget.indexedItemBuilder!(
@@ -307,11 +336,11 @@ class StickyGroupedListViewState<T, E>
 
   _positionListener() {
     _headerBox ??=
-        _groupHeaderKey?.currentContext?.findRenderObject() as RenderBox?;
+        _groupHeaderKey.currentContext?.findRenderObject() as RenderBox?;
     double headerHeight = _headerBox?.size.height ?? 0;
-    _listBox ??= _key.currentContext?.findRenderObject() as RenderBox?;
+    _listBox ??= context.findRenderObject() as RenderBox?;
     double height = _listBox?.size.height ?? 0;
-    headerDimension = headerHeight / height;
+    headerDimension = height > 0 ? headerHeight / height : 0;
 
     ItemPosition reducePositions(ItemPosition pos, ItemPosition current) {
       if (widget.reverse) {
@@ -326,6 +355,11 @@ class StickyGroupedListViewState<T, E>
       ItemPosition currentItem = group.reduce(reducePositions);
       int index = currentItem.index ~/ 2;
       if (_topElementIndex != index) {
+        if (index < 0 || index >= sortedElements.length) {
+          developer.log('index $index out of bounds for sortedElements',
+              name: 'StickyGroupedListView');
+          return;
+        }
         E curr = widget.groupBy(sortedElements[index]);
         E prev = widget.groupBy(sortedElements[_topElementIndex]);
         if (prev != curr) {
@@ -336,8 +370,25 @@ class StickyGroupedListViewState<T, E>
     }
   }
 
+  List<T> _memoizedSortElements() {
+    // Memoize based on elements and order hash
+    final elements = widget.elements;
+    final orderHash = Object.hashAll(elements) ^ widget.order.hashCode;
+    if (_lastElements == elements &&
+        _lastOrderHash == orderHash &&
+        _lastSortedElements != null) {
+      return _lastSortedElements!;
+    }
+    final sorted = _sortElements();
+    _lastElements = elements;
+    _lastOrderHash = orderHash;
+    _lastSortedElements = sorted;
+    return sorted;
+  }
+
   List<T> _sortElements() {
-    List<T> elements = widget.elements;
+    // Always work on a copy to avoid mutating the original list
+    List<T> elements = List<T>.from(widget.elements);
     if (elements.isNotEmpty) {
       elements.sort((e1, e2) {
         int? compareResult;
@@ -368,7 +419,6 @@ class StickyGroupedListViewState<T, E>
 
   Widget _showFixedGroupHeader(int index) {
     if (widget.elements.isNotEmpty && index < sortedElements.length) {
-      _groupHeaderKey = GlobalKey();
       return Container(
         key: _groupHeaderKey,
         color:
