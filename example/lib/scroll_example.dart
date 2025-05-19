@@ -6,7 +6,6 @@ import 'package:sticky_grouped_list/sticky_grouped_list.dart';
 /// groups.
 /// When clicking the [FloatingActionButton] the scroll controller jumps to the
 /// index 50.
-// void main() => runApp(MyApp());
 
 List<Element> _elements =
     List.generate(100, (index) => Element(index, 'Item $index', index ~/ 10));

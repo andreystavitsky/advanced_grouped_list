@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sticky_grouped_list/sticky_grouped_list.dart';
 
 /// This example shows the basic usage of the [StickyGroupedListView].
-// void main() => runApp(const MyApp());
 
 List<Element> _elements = <Element>[
   Element(DateTime(2020, 6, 24, 18), 'Got to gym', Icons.fitness_center),

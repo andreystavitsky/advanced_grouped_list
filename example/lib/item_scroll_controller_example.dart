@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sticky_grouped_list/sticky_grouped_list.dart';
 import 'dart:developer' as developer;
 
-// void main() => runApp(const ItemScrollControllerApp());
-
 List<Element> _elements = List.generate(
   50,
   (index) => Element(
@@ -27,20 +25,30 @@ class _ItemScrollControllerAppState extends State<ItemScrollControllerApp> {
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
   int? _topVisibleIndex;
+  int? _lastVisibleIndex;
   late final VoidCallback _positionsListener;
 
   @override
   void initState() {
     super.initState();
     _positionsListener = () {
-      final idx = _itemPositionsListener.topItemIndex() ?? 0;
+      final idx = _itemPositionsListener.topItemIndex(minVisibility: 0.9) ?? 0;
+      final lastIdx =
+          _itemPositionsListener.lastItemIndex(minVisibility: 0.9) ?? 0;
+      bool changed = false;
       if (_topVisibleIndex != idx) {
-        setState(() {
-          _topVisibleIndex = idx;
-        });
+        _topVisibleIndex = idx;
         developer.log('Top visible item index: $idx',
             name: 'ItemScrollControllerExample');
+        changed = true;
       }
+      if (_lastVisibleIndex != lastIdx) {
+        _lastVisibleIndex = lastIdx;
+        developer.log('Last visible item index: $lastIdx',
+            name: 'ItemScrollControllerExample');
+        changed = true;
+      }
+      if (changed) setState(() {});
     };
     _itemPositionsListener.itemPositions.addListener(_positionsListener);
   }
@@ -99,7 +107,11 @@ class _ItemScrollControllerAppState extends State<ItemScrollControllerApp> {
                       child: const Text('Scroll to Index 20'),
                     ),
                     const SizedBox(width: 10),
-                    Text('Top index: ${_topVisibleIndex ?? "-"}'),
+                    Text(
+                        'Top index: ${_topVisibleIndex != null && _elements.isNotEmpty && _topVisibleIndex! < _elements.length ? _topVisibleIndex : "-"}'),
+                    const SizedBox(width: 10),
+                    Text(
+                        'Last index: ${_lastVisibleIndex != null && _elements.isNotEmpty && _lastVisibleIndex! < _elements.length ? _lastVisibleIndex : "-"}'),
                   ],
                 ),
               ),

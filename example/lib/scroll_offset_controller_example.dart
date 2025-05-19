@@ -3,8 +3,6 @@ import 'package:sticky_grouped_list/sticky_grouped_list.dart';
 import 'dart:developer' as developer;
 import 'dart:async';
 
-// void main() => runApp(const ScrollOffsetControllerApp());
-
 List<Element> _elements = List.generate(
   50,
   (index) => Element(
