@@ -4,6 +4,7 @@ import 'example.dart' as basic_example;
 import 'scroll_example.dart' as scroll_example;
 import 'item_scroll_controller_example.dart';
 import 'scroll_offset_controller_example.dart';
+import 'on_group_changed_example.dart' as on_group_changed_example;
 
 void main() {
   runApp(const MainApp());
@@ -42,6 +43,11 @@ class MainApp extends StatelessWidget {
             _ExampleTile(
               title: 'Scroll Offset Controller Example',
               builder: (context) => const ScrollOffsetControllerApp(),
+            ),
+            _ExampleTile(
+              title: 'onGroupChanged Example',
+              builder: (context) =>
+                  const on_group_changed_example.OnGroupChangedExample(),
             ),
           ],
         ),

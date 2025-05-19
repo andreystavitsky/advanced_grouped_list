@@ -148,6 +148,11 @@ class StickyGroupedListView<T, E> extends StatefulWidget {
   /// Show sticky header
   final bool showStickyHeader;
 
+  /// Called when the visible group changes (i.e., when the list crosses a group separator).
+  ///
+  /// Only works if [groupBy] and [groupSeparatorBuilder] are provided.
+  final void Function(E group)? onGroupChanged;
+
   /// Creates a [StickyGroupedListView].
   ///
   /// If [groupBy] and [groupSeparatorBuilder] are not provided, the widget behaves as a plain ScrollablePositionedList.
@@ -182,7 +187,16 @@ class StickyGroupedListView<T, E> extends StatefulWidget {
     this.initialScrollIndex = 0,
     this.shrinkWrap = false,
     this.showStickyHeader = true,
-  }) : assert(itemBuilder != null || indexedItemBuilder != null);
+    this.onGroupChanged,
+  }) : assert(itemBuilder != null || indexedItemBuilder != null),
+       assert(
+         onGroupChanged == null || (groupBy != null && groupSeparatorBuilder != null),
+         'onGroupChanged requires both groupBy and groupSeparatorBuilder to be provided.'
+       ),
+       assert(
+         (groupBy == null && groupSeparatorBuilder == null) || (groupBy != null && groupSeparatorBuilder != null),
+         'groupBy and groupSeparatorBuilder must either both be provided or both be null.'
+       );
 
   @override
   State<StatefulWidget> createState() => StickyGroupedListViewState<T, E>();
@@ -471,6 +485,12 @@ class StickyGroupedListViewState<T, E>
         if (prev != curr) {
           _topElementIndex = index;
           _streamController.add(_topElementIndex);
+          // Only call onGroupChanged if both groupBy and groupSeparatorBuilder are provided
+          if (widget.onGroupChanged != null &&
+              widget.groupBy != null &&
+              widget.groupSeparatorBuilder != null) {
+            widget.onGroupChanged!(curr);
+          }
         }
       }
     }
