@@ -212,7 +212,7 @@ class AdvancedGroupedListViewState<T, E>
   @protected
   double? headerDimension;
 
-  final StreamController<int> _streamController = StreamController<int>();
+  final StreamController<int> _streamController = StreamController<int>.broadcast();
   late ItemPositionsListener _listener;
   late GroupedItemScrollController _controller;
   final GlobalKey _groupHeaderKey = GlobalKey();

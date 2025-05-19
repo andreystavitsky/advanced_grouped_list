@@ -5,6 +5,7 @@ import 'scroll_example.dart' as scroll_example;
 import 'item_scroll_controller_example.dart';
 import 'scroll_offset_controller_example.dart';
 import 'on_group_changed_example.dart' as on_group_changed_example;
+import 'toggle_sticky_header_example.dart';
 
 void main() {
   runApp(const MainApp());
@@ -24,6 +25,10 @@ class MainApp extends StatelessWidget {
         body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            _ExampleTile(
+              title: 'Toggle Sticky Header Example',
+              builder: (context) => const ToggleStickyHeaderExample(),
+            ),
             _ExampleTile(
               title: 'Basic Example',
               builder: (context) => const basic_example.MyApp(),
