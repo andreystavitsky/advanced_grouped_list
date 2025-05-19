@@ -6,7 +6,7 @@
 
 **Acknowledgements**
 
-This package is originally based on the excellent work from [Dimibe/sticky_grouped_list](https://github.com/Dimibe/sticky_grouped_list) and also incorporates changes from [th8m0z/sticky_grouped_list](https://github.com/th8m0z/sticky_grouped_list). We would like to express our sincere respect and gratitude to the original authors and contributors of these repositories.
+This package is originally based on the excellent work from [Dimibe/sticky_grouped_list](https://github.com/Dimibe/sticky_grouped_list) (which has not been updated for over a year) and also incorporates changes from [th8m0z/sticky_grouped_list](https://github.com/th8m0z/sticky_grouped_list). We would like to express our sincere respect and gratitude to the original authors and contributors of these repositories.
 
 **Key Features and Enhancements Added in This Package:**
 
