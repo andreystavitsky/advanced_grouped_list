@@ -97,8 +97,8 @@ The methods `scrollToElement` and `jumpToElement` can be used to jump to an elem
 **Example: Using `topItemIndex` and `lastItemIndex` with `minVisibility`**
 
 ```dart
-final topIndex = itemPositionsListener.topItemIndex(minVisibility: 0.5);
-final lastIndex = itemPositionsListener.lastItemIndex(minVisibility: 0.5);
+final topIndex = itemPositionsListener.topItemIndex();
+final lastIndex = itemPositionsListener.lastItemIndex(minVisibility: 0.5); // consider as visible if at least 50% of the item is visible on the screen
 ```
 
 ### Parameters:
@@ -106,7 +106,7 @@ final lastIndex = itemPositionsListener.lastItemIndex(minVisibility: 0.5);
 |----|----|----|----|
 |`elements`| A list of the data you want to display in the list | required | - |
 |`itemBuilder` / `indexedItemBuilder`| Function which returns a Widget which defines the item. `indexedItemBuilder` provides the current index as well. If both are defined `indexedItemBuilder` is preferred| yes, either of them | - |
-|`groupBy` |Function which maps an element to its grouped value | required | - |
+|`groupBy` |Function which maps an element to its grouped value.  **Now optional** | no | - |
 |`groupSeparatorBuilder`| Function which gets an element and returns a Widget which defines the group header separator. **Now optional** | no | - |
 |`separator` | A Widget which defines a separator between items inside a group | no | no separator |
 |`floatingHeader` | When set to `true` the sticky header will float over the list | no | `false` |
