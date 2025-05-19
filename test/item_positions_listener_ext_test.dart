@@ -15,7 +15,7 @@ void main() {
       final listener = MockItemPositionsListener([
         MockItemPosition(index: 3, itemTrailingEdge: 0.5, itemLeadingEdge: 0.2),
       ]);
-      expect(listener.topItemIndex(), 3);
+      expect(listener.topItemIndex(), 1); // 3 ~/ 2 = 1
       expect(listener.topItem()?.index, 3);
     });
 
@@ -25,8 +25,8 @@ void main() {
         MockItemPosition(index: 5, itemTrailingEdge: 0.2, itemLeadingEdge: 0.0),
         MockItemPosition(index: 3, itemTrailingEdge: 0.5, itemLeadingEdge: 0.3),
       ]);
-      // 5 is topmost (smallest trailingEdge > 0)
-      expect(listener.topItemIndex(), 5);
+      // Only odd indices are elements: 3 and 5. 5 is topmost (smallest trailingEdge > 0)
+      expect(listener.topItemIndex(), 2); // 5 ~/ 2 = 2
       expect(listener.topItem()?.index, 5);
     });
 
@@ -36,8 +36,9 @@ void main() {
             index: 1, itemTrailingEdge: -0.1, itemLeadingEdge: -0.3),
         MockItemPosition(index: 2, itemTrailingEdge: 0.3, itemLeadingEdge: 0.1),
       ]);
-      expect(listener.topItemIndex(), 2);
-      expect(listener.topItem()?.index, 2);
+      // Only index 1 is an element, but it's not visible. Should return null.
+      expect(listener.topItemIndex(), isNull);
+      expect(listener.topItem(), isNull);
     });
 
     test('topItemIndex returns null when all items are not visible', () {
@@ -57,11 +58,11 @@ void main() {
         () {
       final listener = MockItemPositionsListener([
         MockItemPosition(index: 5, itemTrailingEdge: 0.3, itemLeadingEdge: 0.1),
-        MockItemPosition(index: 2, itemTrailingEdge: 0.3, itemLeadingEdge: 0.1),
+        MockItemPosition(index: 3, itemTrailingEdge: 0.3, itemLeadingEdge: 0.1),
       ]);
-      // When trailing edges are equal, the item with the lower index should win
-      expect(listener.topItemIndex(), 2);
-      expect(listener.topItem()?.index, 2);
+      // Both are elements, trailing edges equal, lower index wins (3)
+      expect(listener.topItemIndex(), 1); // 3 ~/ 2 = 1
+      expect(listener.topItem()?.index, 3);
     });
 
     test('items completely off-screen are filtered out', () {
@@ -77,9 +78,8 @@ void main() {
             itemTrailingEdge: -0.1,
             itemLeadingEdge: -0.3), // Off-screen (before viewport)
       ]);
-
-      // Should ignore items 3 and 4 as they are off-screen
-      expect(listener.topItemIndex(), 5);
+      // Only 5 is a visible element
+      expect(listener.topItemIndex(), 2); // 5 ~/ 2 = 2
       expect(listener.topItem()?.index, 5);
     });
   });
@@ -91,8 +91,8 @@ void main() {
         MockItemPosition(index: 5, itemTrailingEdge: 0.2, itemLeadingEdge: 0.0),
         MockItemPosition(index: 3, itemTrailingEdge: 0.9, itemLeadingEdge: 0.7),
       ]);
-      // In reverse mode, 3 is "topmost" (largest trailingEdge)
-      expect(listener.topItemIndex(reverse: true), 3);
+      // Only odd indices are elements: 3 and 5. In reverse mode, 3 is topmost (largest trailingEdge)
+      expect(listener.topItemIndex(reverse: true), 1); // 3 ~/ 2 = 1
       expect(listener.topItem(reverse: true)?.index, 3);
     });
 
@@ -102,12 +102,12 @@ void main() {
         MockItemPosition(index: 5, itemTrailingEdge: 0.2, itemLeadingEdge: 0.0),
         MockItemPosition(index: 3, itemTrailingEdge: 0.9, itemLeadingEdge: 0.7),
       ]);
-      // In RTL horizontal mode, 3 is "topmost" (largest leadingEdge)
+      // Only odd indices are elements: 3 and 5. In RTL horizontal mode, 3 is topmost (largest leadingEdge)
       expect(
           listener.topItemIndex(
               scrollDirection: Axis.horizontal,
               textDirection: TextDirection.rtl),
-          3);
+          1); // 3 ~/ 2 = 1
       expect(
           listener
               .topItem(
@@ -125,14 +125,14 @@ void main() {
         MockItemPosition(index: 4, itemTrailingEdge: 0.5, itemLeadingEdge: 0.1),
       ]);
 
-      // Horizontal + RTL + Reversed + minVisibility
+      // Only odd indices are elements: 3 and 5. Horizontal + RTL + Reversed + minVisibility
       final result = listener.topItemIndex(
           reverse: true,
           scrollDirection: Axis.horizontal,
           textDirection: TextDirection.rtl,
           minVisibility: 0.2);
 
-      expect(result, 5);
+      expect(result, 1); // 3 ~/ 2 = 1
 
       final itemResult = listener.topItem(
           reverse: true,
@@ -140,7 +140,7 @@ void main() {
           textDirection: TextDirection.rtl,
           minVisibility: 0.2);
 
-      expect(itemResult?.index, 5);
+      expect(itemResult?.index, 3);
     });
   });
 
@@ -148,23 +148,23 @@ void main() {
     test('topItemIndex with minVisibility filters barely visible items', () {
       final listener = MockItemPositionsListener([
         MockItemPosition(
+            index: 3,
+            itemTrailingEdge: 0.9,
+            itemLeadingEdge: 0.2), // 70% visible, element
+        MockItemPosition(
             index: 2,
             itemTrailingEdge: 0.7,
-            itemLeadingEdge: 0.5), // 20% visible
+            itemLeadingEdge: 0.5), // 20% visible, separator
         MockItemPosition(
             index: 5,
             itemTrailingEdge: 0.2,
-            itemLeadingEdge: 0.0), // 20% visible
-        MockItemPosition(
-            index: 3,
-            itemTrailingEdge: 0.9,
-            itemLeadingEdge: 0.2), // 70% visible
+            itemLeadingEdge: 0.0), // 20% visible, element
       ]);
-      // With minVisibility = 0.3, only item 3 qualifies
-      expect(listener.topItemIndex(minVisibility: 0.3), 3);
+      // With minVisibility = 0.3, only item 3 qualifies (element)
+      expect(listener.topItemIndex(minVisibility: 0.3), 1); // 3 ~/ 2 = 1
       expect(listener.topItem(minVisibility: 0.3)?.index, 3);
 
-      // With minVisibility = 0.8, no items qualify
+      // With minVisibility = 0.8, no elements qualify
       expect(listener.topItemIndex(minVisibility: 0.8), isNull);
       expect(listener.topItem(minVisibility: 0.8), isNull);
     });
@@ -174,44 +174,104 @@ void main() {
         () {
       final listener = MockItemPositionsListener([
         MockItemPosition(
+            index: 3,
+            itemTrailingEdge: 0.9,
+            itemLeadingEdge: 0.6), // Leading edge: 0.6, element
+        MockItemPosition(
             index: 2,
             itemTrailingEdge: 0.7,
-            itemLeadingEdge: 0.5), // Leading edge: 0.5
+            itemLeadingEdge: 0.5), // Leading edge: 0.5, separator
         MockItemPosition(
             index: 5,
             itemTrailingEdge: 0.2,
-            itemLeadingEdge: 0.0), // Leading edge: 0.0
-        MockItemPosition(
-            index: 3,
-            itemTrailingEdge: 0.9,
-            itemLeadingEdge: 0.6), // Leading edge: 0.6
+            itemLeadingEdge: 0.0), // Leading edge: 0.0, element
       ]);
 
       // With minLeadingEdgeVisibility = 0.6, only items with leadingEdge <= 0.6 should be considered
-      // Items with index 2 and 5 qualify, and 5 has smaller trailing edge
-      expect(listener.topItemIndex(minLeadingEdgeVisibility: 0.6), 5);
+      // Only 3 and 5 are elements, and both qualify, but 5 has smaller trailing edge
+      expect(listener.topItemIndex(minLeadingEdgeVisibility: 0.6),
+          2); // 5 ~/ 2 = 2
       expect(listener.topItem(minLeadingEdgeVisibility: 0.6)?.index, 5);
 
-      // With minLeadingEdgeVisibility = 0.4, all items with leadingEdge <= 0.4 qualify
-      // Only item 5 qualifies, as it has leadingEdge = 0.0
-      expect(listener.topItemIndex(minLeadingEdgeVisibility: 0.4), 5);
+      // With minLeadingEdgeVisibility = 0.4, only item 5 qualifies (element)
+      expect(listener.topItemIndex(minLeadingEdgeVisibility: 0.4),
+          2); // 5 ~/ 2 = 2
       expect(listener.topItem(minLeadingEdgeVisibility: 0.4)?.index, 5);
     });
 
     test('combines minLeadingEdgeVisibility with other parameters', () {
       final listener = MockItemPositionsListener([
-        MockItemPosition(index: 2, itemTrailingEdge: 0.7, itemLeadingEdge: 0.5),
-        MockItemPosition(index: 5, itemTrailingEdge: 0.2, itemLeadingEdge: 0.0),
-        MockItemPosition(index: 3, itemTrailingEdge: 0.9, itemLeadingEdge: 0.7),
+        MockItemPosition(
+            index: 3, itemTrailingEdge: 0.9, itemLeadingEdge: 0.7), // element
+        MockItemPosition(
+            index: 2, itemTrailingEdge: 0.7, itemLeadingEdge: 0.5), // separator
+        MockItemPosition(
+            index: 5, itemTrailingEdge: 0.2, itemLeadingEdge: 0.0), // element
       ]);
 
-      // With reverse + minLeadingEdgeVisibility
+      // With reverse + minLeadingEdgeVisibility, only elements considered
       expect(
           listener.topItemIndex(reverse: true, minLeadingEdgeVisibility: 0.6),
-          2);
+          2); // 5 ~/ 2 = 2
       expect(
           listener.topItem(reverse: true, minLeadingEdgeVisibility: 0.6)?.index,
-          2);
+          5);
+    });
+  });
+
+  group('ItemPositionsListenerExt - topSeparatorIndex', () {
+    test('topSeparatorIndex returns correct separator index for even indices',
+        () {
+      final listener = MockItemPositionsListener([
+        MockItemPosition(
+            index: 4,
+            itemTrailingEdge: 0.5,
+            itemLeadingEdge: 0.2), // separator at logical index 2
+      ]);
+      expect(listener.topSeparatorIndex(), 2);
+    });
+
+    test(
+        'returns null if topmost visible item is neither element nor separator',
+        () {
+      final listener = MockItemPositionsListener([]);
+      expect(listener.topSeparatorIndex(), isNull);
+    });
+
+    test('topSeparatorIndex with multiple visible items', () {
+      final listener = MockItemPositionsListener([
+        MockItemPosition(
+            index: 2,
+            itemTrailingEdge: 0.7,
+            itemLeadingEdge: 0.4), // separator at 1
+        MockItemPosition(
+            index: 5,
+            itemTrailingEdge: 0.2,
+            itemLeadingEdge: 0.0), // element at 2
+        MockItemPosition(
+            index: 3,
+            itemTrailingEdge: 0.5,
+            itemLeadingEdge: 0.3), // element at 1
+      ]);
+      // 5 is topmost (smallest trailingEdge > 0), and is an element
+      expect(listener.topSeparatorIndex(), isNull);
+    });
+
+    test('topSeparatorIndex with topmost visible separator', () {
+      final listener = MockItemPositionsListener([
+        MockItemPosition(
+            index: 0,
+            itemTrailingEdge: 0.2,
+            itemLeadingEdge: 0.0), // separator at 0
+        MockItemPosition(
+            index: 1,
+            itemTrailingEdge: 0.5,
+            itemLeadingEdge: 0.2), // element at 0
+      ]);
+      // 0 is a separator, but topItemIndex/topItem should ignore it
+      expect(listener.topSeparatorIndex(), 0);
+      expect(listener.topItemIndex(),
+          0); // topItemIndex returns logical index of first visible element (1 ~/ 2 = 0)
     });
   });
 }
