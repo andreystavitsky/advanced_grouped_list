@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
-import 'package:sticky_grouped_list/sticky_grouped_list.dart';
+import 'package:advanced_grouped_list/advanced_grouped_list.dart';
 
 final List _elements = [
   {'name': 'John', 'group': 'Team A'},
@@ -22,10 +22,10 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView(
+          body: AdvancedGroupedListView(
             groupBy: (dynamic element) => element['group'],
             elements: _elements,
-            order: StickyGroupedListOrder.DESC,
+            order: AdvancedGroupedListOrder.DESC,
             groupSeparatorBuilder: buildGroupSeperator,
             itemBuilder: (context, dynamic element) => Text(element['name']),
           ),
@@ -44,7 +44,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView(
+          body: AdvancedGroupedListView(
             groupBy: (dynamic element) => element['group'],
             elements: const [],
             groupSeparatorBuilder: buildGroupSeperator,
@@ -60,7 +60,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView(
+          body: AdvancedGroupedListView(
             groupBy: (dynamic element) => element['group'],
             elements: _elements,
             groupSeparatorBuilder: buildGroupSeperator,
@@ -82,7 +82,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView(
+          body: AdvancedGroupedListView(
             groupBy: (dynamic element) => element['group'],
             elements: copy,
             groupSeparatorBuilder: buildGroupSeperator,
@@ -102,7 +102,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView(
+          body: AdvancedGroupedListView(
             groupBy: (dynamic element) => element['group'],
             elements: elements,
             groupSeparatorBuilder: buildGroupSeperator,
@@ -125,7 +125,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView(
+          body: AdvancedGroupedListView(
             groupBy: (dynamic element) => element['group'],
             elements: elements,
             groupSeparatorBuilder: buildGroupSeperator,
@@ -141,7 +141,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView(
+          body: AdvancedGroupedListView(
             groupBy: (dynamic element) => element['group'],
             elements: elements,
             groupSeparatorBuilder: buildGroupSeperator,
@@ -163,7 +163,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView(
+          body: AdvancedGroupedListView(
             groupBy: (dynamic element) => element['group'],
             elements: elements,
             groupSeparatorBuilder: buildGroupSeperator,
@@ -175,7 +175,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView(
+          body: AdvancedGroupedListView(
             groupBy: (dynamic element) => element['group'],
             elements: elements,
             groupSeparatorBuilder: buildGroupSeperator,
@@ -192,7 +192,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView(
+          body: AdvancedGroupedListView(
             groupBy: (dynamic element) => element['group'],
             elements: _elements,
             groupSeparatorBuilder: buildGroupSeperator,
@@ -202,8 +202,8 @@ void main() {
       ),
     );
     // Find the StickyGroupedListView widget and get its state
-    final state = tester.state(find.byType(StickyGroupedListView))
-        as StickyGroupedListViewState;
+    final state = tester.state(find.byType(AdvancedGroupedListView))
+        as AdvancedGroupedListViewState;
     expect(state, isNotNull);
     // topVisibleElementIndex may be null if not yet laid out, but should not throw
     expect(() => state.topVisibleElementIndex, returnsNormally);
@@ -218,7 +218,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: StickyGroupedListView(
+            body: AdvancedGroupedListView(
               groupBy: (dynamic element) => element['group'],
               elements: _elements,
               groupSeparatorBuilder: buildGroupSeperator,
@@ -247,7 +247,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView(
+          body: AdvancedGroupedListView(
             elements: elements,
             itemBuilder: (context, dynamic element) => Text(element['name']),
           ),
@@ -275,7 +275,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView<Map<String, String>, String>(
+          body: AdvancedGroupedListView<Map<String, String>, String>(
             elements: elements,
             itemBuilder: (context, element) => Text(element['name']!),
           ),
@@ -295,7 +295,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView<Map<String, String>, int>(
+          body: AdvancedGroupedListView<Map<String, String>, int>(
             elements: elements,
             itemBuilder: (context, element) => Text(element['name']!),
           ),
@@ -315,7 +315,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView<Map<String, String>, Object>(
+          body: AdvancedGroupedListView<Map<String, String>, Object>(
             elements: elements,
             itemBuilder: (context, element) => Text(element['name']!),
           ),
@@ -335,7 +335,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView<Map<String, String>, String?>(
+          body: AdvancedGroupedListView<Map<String, String>, String?>(
             elements: elements,
             itemBuilder: (context, element) => Text(element['name']!),
           ),
@@ -355,7 +355,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView<Map<String, String>, int?>(
+          body: AdvancedGroupedListView<Map<String, String>, int?>(
             elements: elements,
             itemBuilder: (context, element) => Text(element['name']!),
           ),
@@ -375,7 +375,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView<Map<String, String>, Object?>(
+          body: AdvancedGroupedListView<Map<String, String>, Object?>(
             elements: elements,
             itemBuilder: (context, element) => Text(element['name']!),
           ),
@@ -395,7 +395,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView<Map<String, String>, Null>(
+          body: AdvancedGroupedListView<Map<String, String>, Null>(
             elements: elements,
             itemBuilder: (context, element) => Text(element['name']!),
           ),
@@ -410,7 +410,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView<Map<String, String>, String>(
+          body: AdvancedGroupedListView<Map<String, String>, String>(
             elements: const [],
             itemBuilder: (context, element) => Text(element['name']!),
           ),
@@ -428,7 +428,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: StickyGroupedListView<Map<String, String>, String>(
+          body: AdvancedGroupedListView<Map<String, String>, String>(
             elements: elements,
             itemBuilder: (context, element) => Text(element['name']!),
           ),
@@ -443,7 +443,7 @@ void main() {
       // Build a widget with an empty list
       await tester.pumpWidget(
         MaterialApp(
-          home: StickyGroupedListView<String, String>(
+          home: AdvancedGroupedListView<String, String>(
             elements: [],
             itemBuilder: (context, element) => Text(element),
             groupBy: (element) => element[0],
@@ -453,8 +453,8 @@ void main() {
       );
 
       // Find the state
-      final StickyGroupedListViewState<String, String> state = tester.state(
-        find.byType(StickyGroupedListView<String, String>),
+      final AdvancedGroupedListViewState<String, String> state = tester.state(
+        find.byType(AdvancedGroupedListView<String, String>),
       );
 
       // No elements should be visible
@@ -465,7 +465,7 @@ void main() {
       // Build a widget with a list of items
       await tester.pumpWidget(
         MaterialApp(
-          home: StickyGroupedListView<String, String>(
+          home: AdvancedGroupedListView<String, String>(
             elements: ['A1', 'A2', 'B1', 'B2', 'C1'],
             itemBuilder: (context, element) => SizedBox(
               height: 100,
@@ -484,8 +484,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Find the state
-      final StickyGroupedListViewState<String, String> state = tester.state(
-        find.byType(StickyGroupedListView<String, String>),
+      final AdvancedGroupedListViewState<String, String> state = tester.state(
+        find.byType(AdvancedGroupedListView<String, String>),
       );
 
       // First element (index 0) should be visible at the top
@@ -504,7 +504,7 @@ void main() {
       // Build a widget with a reversed list
       await tester.pumpWidget(
         MaterialApp(
-          home: StickyGroupedListView<String, String>(
+          home: AdvancedGroupedListView<String, String>(
             elements: ['A1', 'A2', 'B1', 'B2', 'C1'],
             itemBuilder: (context, element) => SizedBox(
               height: 100,
@@ -524,8 +524,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Find the state
-      final StickyGroupedListViewState<String, String> state = tester.state(
-        find.byType(StickyGroupedListView<String, String>),
+      final AdvancedGroupedListViewState<String, String> state = tester.state(
+        find.byType(AdvancedGroupedListView<String, String>),
       );
 
       // In reverse mode, the last element should be visible at the top

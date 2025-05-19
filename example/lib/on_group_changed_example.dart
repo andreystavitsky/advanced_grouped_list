@@ -1,6 +1,6 @@
 import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
-import 'package:sticky_grouped_list/sticky_grouped_list.dart';
+import 'package:advanced_grouped_list/advanced_grouped_list.dart';
 
 class OnGroupChangedExample extends StatefulWidget {
   const OnGroupChangedExample({super.key});
@@ -82,7 +82,7 @@ class _OnGroupChangedExampleState extends State<OnGroupChangedExample> {
             ),
           ),
           Expanded(
-            child: StickyGroupedListView<Map<String, String>, String>(
+            child: AdvancedGroupedListView<Map<String, String>, String>(
               elements: elements,
               groupBy: (el) => el['group']!,
               groupSeparatorBuilder: (el) => Container(

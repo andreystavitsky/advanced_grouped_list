@@ -4,13 +4,13 @@ import 'dart:developer' as developer;
 import 'package:flutter/widgets.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
-import 'sticky_grouped_list_order.dart';
+import 'advanced_grouped_list_order.dart';
 
-/// A groupable list of widgets similar to [ScrollablePositionedList], execpt
+/// A groupable list of widgets similar to [ScrollablePositionedList], except
 /// that the items can be sectioned into groups.
 ///
 /// See [ScrollablePositionedList]
-class StickyGroupedListView<T, E> extends StatefulWidget {
+class AdvancedGroupedListView<T, E> extends StatefulWidget {
   /// Items of which [itemBuilder] or [indexedItemBuilder] produce the list.
   final List<T> elements;
 
@@ -47,7 +47,7 @@ class StickyGroupedListView<T, E> extends StatefulWidget {
   final Widget Function(BuildContext context, T element, int index)?
       indexedItemBuilder;
 
-  /// Used to clearly indentify an element. The returned value can be of any
+  /// Used to clearly identify an element. The returned value can be of any
   /// type but must be unique for each element.
   ///
   /// Used by [GroupedItemScrollController] to scroll and jump to a specific
@@ -57,7 +57,7 @@ class StickyGroupedListView<T, E> extends StatefulWidget {
   /// Whether the sorting of the list is ascending or descending.
   ///
   /// Defaults to ASC.
-  final StickyGroupedListOrder order;
+  final AdvancedGroupedListOrder order;
 
   /// Called to build separators for between each item in the list.
   final Widget separator;
@@ -153,10 +153,10 @@ class StickyGroupedListView<T, E> extends StatefulWidget {
   /// Only works if [groupBy] and [groupSeparatorBuilder] are provided.
   final void Function(E group)? onGroupChanged;
 
-  /// Creates a [StickyGroupedListView].
+  /// Creates a [AdvancedGroupedListView].
   ///
   /// If [groupBy] and [groupSeparatorBuilder] are not provided, the widget behaves as a plain ScrollablePositionedList.
-  const StickyGroupedListView({
+  const AdvancedGroupedListView({
     super.key,
     required this.elements,
     this.groupBy,
@@ -166,7 +166,7 @@ class StickyGroupedListView<T, E> extends StatefulWidget {
     this.indexedItemBuilder,
     this.itemComparator,
     this.elementIdentifier,
-    this.order = StickyGroupedListOrder.ASC,
+    this.order = AdvancedGroupedListOrder.ASC,
     this.separator = const SizedBox.shrink(),
     this.floatingHeader = false,
     this.stickyHeaderBackgroundColor = const Color(0xffF7F7F7),
@@ -188,22 +188,22 @@ class StickyGroupedListView<T, E> extends StatefulWidget {
     this.shrinkWrap = false,
     this.showStickyHeader = true,
     this.onGroupChanged,
-  }) : assert(itemBuilder != null || indexedItemBuilder != null),
-       assert(
-         onGroupChanged == null || (groupBy != null && groupSeparatorBuilder != null),
-         'onGroupChanged requires both groupBy and groupSeparatorBuilder to be provided.'
-       ),
-       assert(
-         (groupBy == null && groupSeparatorBuilder == null) || (groupBy != null && groupSeparatorBuilder != null),
-         'groupBy and groupSeparatorBuilder must either both be provided or both be null.'
-       );
+  })  : assert(itemBuilder != null || indexedItemBuilder != null),
+        assert(
+            onGroupChanged == null ||
+                (groupBy != null && groupSeparatorBuilder != null),
+            'onGroupChanged requires both groupBy and groupSeparatorBuilder to be provided.'),
+        assert(
+            (groupBy == null && groupSeparatorBuilder == null) ||
+                (groupBy != null && groupSeparatorBuilder != null),
+            'groupBy and groupSeparatorBuilder must either both be provided or both be null.');
 
   @override
-  State<StatefulWidget> createState() => StickyGroupedListViewState<T, E>();
+  State<StatefulWidget> createState() => AdvancedGroupedListViewState<T, E>();
 }
 
-class StickyGroupedListViewState<T, E>
-    extends State<StickyGroupedListView<T, E>> {
+class AdvancedGroupedListViewState<T, E>
+    extends State<AdvancedGroupedListView<T, E>> {
   /// Used within [GroupedItemScrollController].
   @protected
   List<T> sortedElements = [];
@@ -261,7 +261,7 @@ class StickyGroupedListViewState<T, E>
   }
 
   @override
-  void didUpdateWidget(StickyGroupedListView<T, E> oldWidget) {
+  void didUpdateWidget(AdvancedGroupedListView<T, E> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.itemScrollController?._stickyGroupedListViewState == this) {
       oldWidget.itemScrollController?._detach();
@@ -536,7 +536,7 @@ class StickyGroupedListViewState<T, E>
         return compareResult ?? 0;
       });
     }
-    if (widget.order == StickyGroupedListOrder.DESC) {
+    if (widget.order == AdvancedGroupedListOrder.DESC) {
       elements = elements.reversed.toList();
     }
     return elements;
@@ -570,9 +570,9 @@ class StickyGroupedListViewState<T, E>
 ///
 /// See [ItemScrollController].
 class GroupedItemScrollController extends ItemScrollController {
-  StickyGroupedListViewState? _stickyGroupedListViewState;
+  AdvancedGroupedListViewState? _stickyGroupedListViewState;
 
-  /// Whether any [StickyGroupedListView] objects are attached this object.
+  /// Whether any [AdvancedGroupedListView] objects are attached this object.
   ///
   /// If `false`, then [jumpTo] and [scrollTo] must not be called.
   @override
@@ -663,7 +663,7 @@ class GroupedItemScrollController extends ItemScrollController {
     return -1;
   }
 
-  void _attach(StickyGroupedListViewState stickyGroupedListViewState) {
+  void _attach(AdvancedGroupedListViewState stickyGroupedListViewState) {
     assert(_stickyGroupedListViewState == null);
     _stickyGroupedListViewState = stickyGroupedListViewState;
   }

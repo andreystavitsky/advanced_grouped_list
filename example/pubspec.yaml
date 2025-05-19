@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  sticky_grouped_list:
+  advanced_grouped_list:
     path: ../
   intl: ^0.17.0
 

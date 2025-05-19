@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sticky_grouped_list/sticky_grouped_list.dart';
+import 'package:advanced_grouped_list/advanced_grouped_list.dart';
 
-/// This example shows the usage of the [StickyGroupedListView] with a
+/// This example shows the usage of the [AdvancedGroupedListView] with a
 /// [GroupedItemScrollController]. The list shows 100 elements divided in ten
 /// groups.
 /// When clicking the [FloatingActionButton] the scroll controller jumps to the
@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
               : null,
           title: const Text('Grouped List View Example'),
         ),
-        body: StickyGroupedListView<Element, int>(
+        body: AdvancedGroupedListView<Element, int>(
           elements: _elements,
           groupBy: (Element element) => element.group,
           elementIdentifier: (Element element) => element.id,

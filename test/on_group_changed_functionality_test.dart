@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sticky_grouped_list/sticky_grouped_list.dart';
-// ScrollablePositionedList is used internally by StickyGroupedListView 
+import 'package:advanced_grouped_list/advanced_grouped_list.dart';
+// ScrollablePositionedList is used internally by StickyGroupedListView
 // but not directly in these tests
 
 void main() {
@@ -29,28 +29,32 @@ void main() {
       );
     }
 
-    testWidgets('assertion error when onGroupChanged is provided without groupBy',
+    testWidgets(
+        'assertion error when onGroupChanged is provided without groupBy',
         (WidgetTester tester) async {
       expect(
-        () => StickyGroupedListView<Map<String, String>, String>(
+        () => AdvancedGroupedListView<Map<String, String>, String>(
           elements: elements,
           // groupBy is missing
           groupSeparatorBuilder: buildGroupSeparator,
-          itemBuilder: (context, element) => ListTile(title: Text(element['name']!)),
+          itemBuilder: (context, element) =>
+              ListTile(title: Text(element['name']!)),
           onGroupChanged: (group) {},
         ),
         throwsAssertionError,
       );
     });
 
-    testWidgets('assertion error when onGroupChanged is provided without groupSeparatorBuilder',
+    testWidgets(
+        'assertion error when onGroupChanged is provided without groupSeparatorBuilder',
         (WidgetTester tester) async {
       expect(
-        () => StickyGroupedListView<Map<String, String>, String>(
+        () => AdvancedGroupedListView<Map<String, String>, String>(
           elements: elements,
           groupBy: (element) => element['group']!,
           // groupSeparatorBuilder is missing
-          itemBuilder: (context, element) => ListTile(title: Text(element['name']!)),
+          itemBuilder: (context, element) =>
+              ListTile(title: Text(element['name']!)),
           onGroupChanged: (group) {},
         ),
         throwsAssertionError,
@@ -61,11 +65,11 @@ void main() {
         (WidgetTester tester) async {
       // Create a simple implementation to test the callback
       bool callbackCalled = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: StickyGroupedListView<Map<String, String>, String>(
+            body: AdvancedGroupedListView<Map<String, String>, String>(
               elements: elements,
               groupBy: (element) => element['group']!,
               groupSeparatorBuilder: buildGroupSeparator,
@@ -84,25 +88,26 @@ void main() {
       );
 
       await tester.pumpAndSettle();
-      
+
       // At this point, the test has confirmed that:
       // 1. The StickyGroupedListView widget can be built with an onGroupChanged callback
       // 2. The widget doesn't crash when rendered
-      // 
+      //
       // We're not testing the actual callback invocation in this test
       // to avoid the reliability issues with the test hanging
-      expect(callbackCalled, isFalse); // Should not be called during initial setup
+      expect(
+          callbackCalled, isFalse); // Should not be called during initial setup
     });
 
     // Test for behavior with empty elements list
     testWidgets('onGroupChanged with empty elements list',
         (WidgetTester tester) async {
       bool callbackCalled = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: StickyGroupedListView<Map<String, String>, String>(
+            body: AdvancedGroupedListView<Map<String, String>, String>(
               elements: [], // Empty list
               groupBy: (element) => element['group']!,
               groupSeparatorBuilder: buildGroupSeparator,
@@ -119,7 +124,7 @@ void main() {
       );
 
       await tester.pumpAndSettle();
-      
+
       // Callback should not be called with empty list
       expect(callbackCalled, isFalse);
     });
@@ -134,13 +139,13 @@ void main() {
           'group': i < 5 ? 'Group 1' : null,
         },
       );
-      
+
       bool callbackCalled = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: StickyGroupedListView<Map<String, String?>, String?>(
+            body: AdvancedGroupedListView<Map<String, String?>, String?>(
               elements: elementsWithNullable,
               groupBy: (element) => element['group'],
               // Provide custom group comparator to handle null values
@@ -156,7 +161,8 @@ void main() {
                 child: Center(
                   child: Text(
                     element['group'] ?? 'No Group',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -174,7 +180,7 @@ void main() {
       );
 
       await tester.pumpAndSettle();
-      
+
       // Just verify the widget builds properly with nullable groups
       // We're not testing callback triggering due to the flakiness
       expect(callbackCalled, isFalse);
@@ -184,11 +190,11 @@ void main() {
     testWidgets('onGroupChanged works with descending order',
         (WidgetTester tester) async {
       bool callbackCalled = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: StickyGroupedListView<Map<String, String>, String>(
+            body: AdvancedGroupedListView<Map<String, String>, String>(
               elements: elements,
               groupBy: (element) => element['group']!,
               groupSeparatorBuilder: buildGroupSeparator,
@@ -200,14 +206,14 @@ void main() {
                 callbackCalled = true;
               },
               // Use descending order
-              order: StickyGroupedListOrder.DESC,
+              order: AdvancedGroupedListOrder.DESC,
             ),
           ),
         ),
       );
 
       await tester.pumpAndSettle();
-      
+
       // Simply verify construction works with DESC order
       expect(callbackCalled, isFalse);
     });

@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:sticky_grouped_list/src/item_positions_listener_ext.dart';
+import 'package:advanced_grouped_list/src/item_positions_listener_ext.dart';
 
 void main() {
   group('ItemPositionsListenerExt - basic functionality', () {
@@ -430,19 +430,23 @@ void main() {
         MockItemPosition(
             index: 6,
             itemLeadingEdge: -0.5,
-            itemTrailingEdge: 1.5), // Separator S6 (Oversized), %vis 0.5, trail 1.5
+            itemTrailingEdge:
+                1.5), // Separator S6 (Oversized), %vis 0.5, trail 1.5
         MockItemPosition(
             index: 7,
             itemLeadingEdge: -0.5,
-            itemTrailingEdge: 1.5), // Element E7 (Oversized), %vis 0.5, trail 1.5
+            itemTrailingEdge:
+                1.5), // Element E7 (Oversized), %vis 0.5, trail 1.5
         MockItemPosition(
             index: 8,
             itemLeadingEdge: 0.5,
-            itemTrailingEdge: 0.5), // Separator S8 (Zero size), %vis 0.0, trail 0.5
+            itemTrailingEdge:
+                0.5), // Separator S8 (Zero size), %vis 0.0, trail 0.5
         MockItemPosition(
             index: 9,
             itemLeadingEdge: 0.55,
-            itemTrailingEdge: 0.55), // Element E9 (Zero size), %vis 0.0, trail 0.55
+            itemTrailingEdge:
+                0.55), // Element E9 (Zero size), %vis 0.0, trail 0.55
       ]);
 
       // minVisibility = 0.0 (S0 is topmost: index 0, logical 0)
@@ -453,13 +457,13 @@ void main() {
 
       // minVisibility = 0.51 (E1,E5,S6,E7 fail. S2 is topmost: index 2, logical 1)
       expect(listener.topSeparatorIndex(minVisibility: 0.51), 1);
-      
+
       // minVisibility = 0.76 (S4 fails. S2 is topmost: index 2, logical 1)
       expect(listener.topSeparatorIndex(minVisibility: 0.76), 1);
 
       // minVisibility = 1.0 (S2 is topmost: index 2, logical 1)
       expect(listener.topSeparatorIndex(minVisibility: 1.0), 1);
-      
+
       // minVisibility = 1.1 (No separator qualifies)
       expect(listener.topSeparatorIndex(minVisibility: 1.1), isNull);
     });
@@ -683,7 +687,8 @@ void main() {
         MockItemPosition(
             index: 7,
             itemLeadingEdge: -0.5,
-            itemTrailingEdge: 1.5), // Element E7 (Oversized), %vis 0.5, lead -0.5
+            itemTrailingEdge:
+                1.5), // Element E7 (Oversized), %vis 0.5, lead -0.5
         MockItemPosition(
             index: 8,
             itemLeadingEdge: 0.5,
@@ -691,7 +696,8 @@ void main() {
         MockItemPosition(
             index: 9,
             itemLeadingEdge: 0.55,
-            itemTrailingEdge: 0.55), // Element E9 (Zero size), %vis 0.0, lead 0.55
+            itemTrailingEdge:
+                0.55), // Element E9 (Zero size), %vis 0.0, lead 0.55
       ]);
 
       // minVisibility = 0.0 (E5 is last: index 5, logical 2)

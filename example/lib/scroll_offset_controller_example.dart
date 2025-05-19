@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sticky_grouped_list/sticky_grouped_list.dart';
+import 'package:advanced_grouped_list/advanced_grouped_list.dart';
 import 'dart:developer' as developer;
 import 'dart:async';
 
@@ -102,7 +102,7 @@ class _ScrollOffsetControllerAppState extends State<ScrollOffsetControllerApp> {
               ),
             ),
             Expanded(
-              child: StickyGroupedListView<Element, DateTime>(
+              child: AdvancedGroupedListView<Element, DateTime>(
                 elements: _elements,
                 groupBy: (Element element) => DateTime(
                   element.date.year,
